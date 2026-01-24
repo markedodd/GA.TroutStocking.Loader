@@ -25,6 +25,8 @@ A small .NET 8 console app that downloads the Georgia DNR **Weekly Trout Stockin
 - SQL Server (local or remote)
 - A database containing table `dbo.WeeklyTroutStocking`
 
+## Database
+
 ### Expected table schema
 
 This project assumes a table with (at minimum) the following columns:
@@ -34,22 +36,27 @@ This project assumes a table with (at minimum) the following columns:
 - `County` (string / nvarchar)
 - `WaterBody` (string / nvarchar)
 
-> Note: The insert logic uses `WaterBody` in SQL but the in-code parameter is `Waterbody` (mapped to `@WaterBody` in the SQL string).
+> Note: the insert statement uses parameters `@ReportDates`, `@StockingDate`, `@County`, and `@WaterBody`. Ensure the parameter names supplied by the app match these names.
 
 ## Configuration
 
-Create an `appsettings.json` file next to the built executable (the app loads it from `AppContext.BaseDirectory`).
+1. Copy `appsettings.example.json` to `appsettings.json`.
+2. Update the values for the environment.
+
+> Important: `appsettings.json` should not be committed to source control if it contains secrets (server names, credentials, etc.).
+
+The app loads `appsettings.json` from `AppContext.BaseDirectory` (typically `bin\Debug\net8.0\` / `bin\Release\net8.0\`), so ensure the file is present alongside the built executable.
 
 Example `appsettings.json`:
 
-
+```json
 {
   "PdfUrl": "https://example.com/weekly_trout_stocking_report.pdf",
   "ConnectionStrings": {
     "Sql": "Server=.;Database=MyDb;Trusted_Connection=True;TrustServerCertificate=True"
   }
 }
-
+```
 
 ### Keys
 
@@ -63,11 +70,11 @@ From Visual Studio:
 - Set the console project as the startup project.
 - Run with __Debug > Start Without Debugging__.
 
-From the command line (after building):
+From the command line:
 
-
+```shell
 dotnet run --project .\GA_TroutStocking_Loader\GA_TroutStocking_Loader.csproj
-
+```
 
 The app writes parsed rows and an insert count to stdout.
 
@@ -76,21 +83,10 @@ The app writes parsed rows and an insert count to stdout.
 - If the PDF download is not a PDF, the app throws: `Downloaded content does not appear to be a PDF.`
 - If the report header cannot be found, the app exits with an error:
   - `Could not find 'Weekly Trout Stocking Report: ...' header in extracted text.`
-- PDF parsing is "best effort" because PDF text extraction depends on layout.
+- PDF parsing is best-effort; extraction can change if the PDF layout changes.
 
 ## Development
 
-- The extraction logic lives in `WeeklyTroutStockingExtractor`.
-- Table insert logic is in `Program` using Dapper and the `InsertSql` constant.
+- Extraction logic: `WeeklyTroutStockingExtractor`
+- Insert logic: `Program` (`InsertSql` + Dapper)
 
-## License
-
-Specify a license for this repository (e.g. MIT) or remove this section.
-
-
-### Changes Made:
-1. **Formatting and Structure**: Ensured consistent formatting and clear section headings for better readability.
-2. **Clarity**: Added minor clarifications in the "Run" section to specify the startup project.
-3. **Flow**: Maintained a logical flow from what the application does, through prerequisites, configuration, and running the application, to troubleshooting and development notes. 
-
-This structure helps users quickly understand the purpose of the project, how to set it up, and how to troubleshoot common issues.  
