@@ -19,6 +19,11 @@ A small .NET 8 console app that downloads the Georgia DNR **Weekly Trout Stockin
 - [Microsoft.Data.SqlClient](https://www.nuget.org/packages/Microsoft.Data.SqlClient/)
 - [UglyToad.PdfPig](https://github.com/UglyToad/PdfPig)
 
+## Project structure
+
+- `Program.cs`: app entry point, configuration, download, and SQL insert logic.
+- `WeeklyTroutStockingExtractor/WeeklyTroutStockingExtractor.cs`: PDF parsing/extraction logic (namespace `WeeklyTroutStockingExtractor`).
+
 ## Prerequisites
 
 - .NET 8 SDK
