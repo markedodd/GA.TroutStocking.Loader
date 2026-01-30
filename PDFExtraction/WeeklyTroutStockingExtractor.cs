@@ -4,6 +4,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
@@ -47,6 +49,41 @@ namespace PDFExtraction
             var reportDates = ExtractReportDates(fullText);
 
             // 2) Find the start of the table, then parse each row line
+            var rows = ExtractRowsFromLines(allLines);
+
+            return (reportDates, rows);
+        }
+
+        public static async Task<(string reportDates, List<StockingRow> rows)> ExtractAsync(
+            string pdfPath,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(pdfPath)) throw new ArgumentException("pdfPath is required.");
+            if (!File.Exists(pdfPath)) throw new FileNotFoundException("PDF not found.", pdfPath);
+
+            await using var stream = new FileStream(
+                pdfPath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferSize: 64 * 1024,
+                options: FileOptions.Asynchronous | FileOptions.SequentialScan);
+
+            // PdfPig itself is synchronous; this stream open is the async/I-O piece we can improve.
+            // We still honor cancellation between pages.
+            using var doc = PdfDocument.Open(stream);
+
+            var allLines = new List<string>();
+            foreach (var page in doc.GetPages())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var text = ContentOrderTextExtractor.GetText(page);
+                allLines.AddRange(SplitLines(text));
+            }
+
+            var fullText = string.Join("\n", allLines);
+            var reportDates = ExtractReportDates(fullText);
             var rows = ExtractRowsFromLines(allLines);
 
             return (reportDates, rows);
