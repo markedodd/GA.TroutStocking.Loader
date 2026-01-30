@@ -46,7 +46,7 @@ WHERE NOT EXISTS
                 Log.Logger.Debug(LogJson.Message("PDF downloaded", new { tempPDFFilePath }));
 
                 Log.Logger.Info(LogJson.Message("Extracting PDF rows"));
-                var (reportDates, rows) = WeeklyTroutStockingExtractor.Extract(tempPDFFilePath);
+                var (reportDates, rows) = await WeeklyTroutStockingExtractor.ExtractAsync(tempPDFFilePath);
 
                 if (string.IsNullOrWhiteSpace(reportDates))
                 {
