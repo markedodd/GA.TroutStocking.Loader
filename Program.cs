@@ -6,7 +6,7 @@ using PDFExtraction;
 
 namespace GA_TroutStocking_Loader
 {
-    internal class Program
+    public class Program
     {
         private static readonly Regex ReportDatesRx =
             new(@"Weekly\s+Trout\s+Stocking\s+Report:\s*(?<dates>\d{1,2}/\d{1,2}/\d{4}\s*-\s*\d{1,2}/\d{1,2}/\d{4})",

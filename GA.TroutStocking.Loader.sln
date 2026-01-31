@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36717.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GA.TroutStocking.Loader", "GA.TroutStocking.Loader.csproj", "{1C2DD6A7-6CAD-4230-BE66-7D2DD3F15BAD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GA.TroutStocking.Loader.Tests", "GA.TroutStocking.Loader.Tests\GA.TroutStocking.Loader.Tests.csproj", "{A3F96214-9D42-7D3A-2B2D-1D4CBCBF1793}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{1C2DD6A7-6CAD-4230-BE66-7D2DD3F15BAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C2DD6A7-6CAD-4230-BE66-7D2DD3F15BAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C2DD6A7-6CAD-4230-BE66-7D2DD3F15BAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3F96214-9D42-7D3A-2B2D-1D4CBCBF1793}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3F96214-9D42-7D3A-2B2D-1D4CBCBF1793}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3F96214-9D42-7D3A-2B2D-1D4CBCBF1793}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3F96214-9D42-7D3A-2B2D-1D4CBCBF1793}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
