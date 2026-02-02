@@ -37,12 +37,10 @@ WHERE NOT EXISTS
             try
             {
                 var config = await LoadConfigAsync();
-
                 Log.Logger.Info(LogJson.Message("Configuration loaded", new { config.PdfUrl }));
 
                 Log.Logger.Info(LogJson.Message("Downloading PDF"));
                 var tempPDFFilePath = await DownloadPdfAsync(config.PdfUrl);
-
                 Log.Logger.Debug(LogJson.Message("PDF downloaded", new { tempPDFFilePath }));
 
                 Log.Logger.Info(LogJson.Message("Extracting PDF rows"));
@@ -55,12 +53,10 @@ WHERE NOT EXISTS
                     Environment.Exit(1);
                     return;
                 }
-
                 Log.Logger.Info(LogJson.Message("Extraction complete", new { reportDates, rowCount = rows.Count }));
 
                 using var conn = new SqlConnection(config.SqlConnectionString);
                 await conn.OpenAsync();
-
                 Log.Logger.Info(LogJson.Message("SQL connection opened"));
 
                 var inserted = 0;
@@ -101,29 +97,34 @@ WHERE NOT EXISTS
             var configPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
             if (!File.Exists(configPath))
             {
-                Log.Logger.Error(LogJson.Message("Missing configuration file", new { configPath }));
-                Console.Error.WriteLine($"Missing {configPath}");
-                Environment.Exit(1);
+                throw new FileNotFoundException("Missing configuration file.", configPath);
             }
 
             var json = await File.ReadAllTextAsync(configPath);
+            return ParseConfigJson(json);
+        }
 
+        private static AppConfig ParseConfigJson(string json)
+        {
             var pdfUrl = ReadJsonValue(json, "PdfUrl");
             var connStr = ReadJsonValue(json, "Sql", "ConnectionStrings");
 
             if (string.IsNullOrWhiteSpace(pdfUrl) || string.IsNullOrWhiteSpace(connStr))
             {
-                Log.Logger.Error(LogJson.Message("Configuration missing required keys", new
-                {
-                    hasPdfUrl = !string.IsNullOrWhiteSpace(pdfUrl),
-                    hasSql = !string.IsNullOrWhiteSpace(connStr)
-                }));
-
-                Console.Error.WriteLine("appsettings.json is missing PdfUrl or ConnectionStrings:Sql");
-                Environment.Exit(1);
+                throw new InvalidOperationException("appsettings.json is missing PdfUrl or ConnectionStrings:Sql");
             }
 
-            return new AppConfig(pdfUrl!, connStr!);
+            return new AppConfig(pdfUrl, connStr);
+        }
+
+        private static string? ReadJsonValue(string json, string key, string? parentKey = null)
+        {
+            string pattern = parentKey == null
+                ? $@"""{Regex.Escape(key)}""\s*:\s*""(?<v>[^""]+)"""
+                : $@"""{Regex.Escape(parentKey)}""\s*:\s*\{{[\s\S]*?""{Regex.Escape(key)}""\s*:\s*""(?<v>[^""]+)""[\s\S]*?\}}";
+
+            var m = Regex.Match(json, pattern, RegexOptions.IgnoreCase);
+            return m.Success ? m.Groups["v"].Value : null;
         }
 
         private static async Task<string> DownloadPdfAsync(string url)
@@ -159,14 +160,5 @@ WHERE NOT EXISTS
             }
         }
 
-        private static string? ReadJsonValue(string json, string key, string? parentKey = null)
-        {
-            string pattern = parentKey == null
-                ? $@"""{Regex.Escape(key)}""\s*:\s*""(?<v>[^""]+)"""
-                : $@"""{Regex.Escape(parentKey)}""\s*:\s*\{{[\s\S]*?""{Regex.Escape(key)}""\s*:\s*""(?<v>[^""]+)""[\s\S]*?\}}";
-
-            var m = Regex.Match(json, pattern, RegexOptions.IgnoreCase);
-            return m.Success ? m.Groups["v"].Value : null;
-        }
     }
 }
