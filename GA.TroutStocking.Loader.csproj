@@ -8,6 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="GA.TroutStocking.Loader.Tests\**" />
+    <EmbeddedResource Remove="GA.TroutStocking.Loader.Tests\**" />
+    <None Remove="GA.TroutStocking.Loader.Tests\**" />
+  </ItemGroup>
+
+  
+
+  <ItemGroup>
     <None Remove="appsettings.json" />
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -19,6 +27,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.66" />
