@@ -1,23 +1,10 @@
-using System.Reflection;
+using GA_TroutStocking_Loader.Tests.TestHelpers;
 using Xunit;
 
 namespace GA_TroutStocking_Loader.Tests;
 
 public sealed class Program_ReadJsonValueTests
 {
-    private static string? InvokeReadJsonValue(string json, string key, string? parentKey = null)
-    {
-        var programType = typeof(GA_TroutStocking_Loader.Program);
-
-        var method = programType.GetMethod(
-            "ReadJsonValue",
-            BindingFlags.NonPublic | BindingFlags.Static);
-
-        Assert.NotNull(method);
-
-        return (string?)method!.Invoke(null, new object?[] { json, key, parentKey });
-    }
-
     [Fact]
     public void ReadJsonValue_TopLevelKey_ReturnsValue()
     {
@@ -27,7 +14,7 @@ public sealed class Program_ReadJsonValueTests
         }
         """;
 
-        var value = InvokeReadJsonValue(json, "PdfUrl");
+        var value = LegacyJsonConfigParser.ReadJsonValue(json, "PdfUrl");
 
         Assert.Equal("https://example.com/report.pdf", value);
     }
@@ -41,7 +28,7 @@ public sealed class Program_ReadJsonValueTests
         }
         """;
 
-        var value = InvokeReadJsonValue(json, "PdfUrl");
+        var value = LegacyJsonConfigParser.ReadJsonValue(json, "PdfUrl");
 
         Assert.Null(value);
     }
@@ -55,7 +42,7 @@ public sealed class Program_ReadJsonValueTests
         }
         """;
 
-        var value = InvokeReadJsonValue(json, "PdfUrl");
+        var value = LegacyJsonConfigParser.ReadJsonValue(json, "PdfUrl");
 
         Assert.Equal("https://example.com/report.pdf", value);
     }
@@ -71,7 +58,7 @@ public sealed class Program_ReadJsonValueTests
         }
         """;
 
-        var value = InvokeReadJsonValue(json, "Sql", "ConnectionStrings");
+        var value = LegacyJsonConfigParser.ReadJsonValue(json, "Sql", "ConnectionStrings");
 
         Assert.Equal("Server=.;Database=Db;Trusted_Connection=True", value);
     }
@@ -87,7 +74,7 @@ public sealed class Program_ReadJsonValueTests
         }
         """;
 
-        var value = InvokeReadJsonValue(json, "Sql", "ConnectionStrings");
+        var value = LegacyJsonConfigParser.ReadJsonValue(json, "Sql", "ConnectionStrings");
 
         Assert.Null(value);
     }
@@ -103,7 +90,7 @@ public sealed class Program_ReadJsonValueTests
         }
         """;
 
-        var value = InvokeReadJsonValue(json, "Sql", "ConnectionStrings");
+        var value = LegacyJsonConfigParser.ReadJsonValue(json, "Sql", "ConnectionStrings");
 
         Assert.Null(value);
     }
@@ -117,7 +104,7 @@ public sealed class Program_ReadJsonValueTests
         }
         """;
 
-        var value = InvokeReadJsonValue(json, "PdfUrl");
+        var value = LegacyJsonConfigParser.ReadJsonValue(json, "PdfUrl");
 
         Assert.Equal("https://example.com/a b/report.pdf", value);
     }

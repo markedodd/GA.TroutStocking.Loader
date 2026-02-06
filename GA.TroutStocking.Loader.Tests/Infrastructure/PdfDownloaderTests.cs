@@ -1,27 +1,16 @@
+using GA_TroutStocking_Loader.Infrastructure;
+using GA_TroutStocking_Loader.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using System.Reflection;
+using System.Net.Sockets;
 using Xunit;
 
-namespace GA_TroutStocking_Loader.Tests;
+namespace GA_TroutStocking_Loader.Tests.Infrastructure;
 
-public sealed class Program_DownloadPdfAsyncTests
+public sealed class PdfDownloaderTests
 {
-    private static async Task<string> InvokeDownloadPdfAsync(string url)
-    {
-        var programType = typeof(GA_TroutStocking_Loader.Program);
-
-        var method = programType.GetMethod(
-            "DownloadPdfAsync",
-            BindingFlags.NonPublic | BindingFlags.Static);
-
-        Assert.NotNull(method);
-
-        var task = (Task<string>)method!.Invoke(null, new object?[] { url })!;
-        return await task;
-    }
-
     [Fact]
-    public async Task DownloadPdfAsync_WhenResponseIsPdfHeader_WritesTempFileAndReturnsPath()
+    public async Task DownloadAsync_WhenResponseIsPdfHeader_WritesTempFileAndReturnsPath()
     {
         using var server = new TestHttpServer(context =>
         {
@@ -34,7 +23,10 @@ public sealed class Program_DownloadPdfAsyncTests
             context.Response.Close();
         });
 
-        var tempFilePath = await InvokeDownloadPdfAsync(server.Url);
+        using var provider = CreateProvider();
+        var sut = provider.GetRequiredService<IPdfDownloader>();
+
+        var tempFilePath = await sut.DownloadAsync(server.Url);
 
         try
         {
@@ -59,7 +51,7 @@ public sealed class Program_DownloadPdfAsyncTests
     }
 
     [Fact]
-    public async Task DownloadPdfAsync_WhenResponseIsNotPdf_ThrowsInvalidOperationException()
+    public async Task DownloadAsync_WhenResponseIsNotPdf_ThrowsInvalidOperationException()
     {
         using var server = new TestHttpServer(context =>
         {
@@ -72,9 +64,29 @@ public sealed class Program_DownloadPdfAsyncTests
             context.Response.Close();
         });
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => InvokeDownloadPdfAsync(server.Url));
+        using var provider = CreateProvider();
+        var sut = provider.GetRequiredService<IPdfDownloader>();
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => sut.DownloadAsync(server.Url));
 
         Assert.Equal("Downloaded content does not appear to be a PDF.", ex.Message);
+    }
+
+    private static ServiceProvider CreateProvider()
+    {
+        // Minimal DI setup to exercise the real IHttpClientFactory (typed client) behavior.
+        var services = new ServiceCollection();
+
+        services.AddHttpClient<IPdfDownloader, PdfDownloader>(c =>
+            {
+                c.DefaultRequestHeaders.UserAgent.ParseAdd("GaTroutStockingLoader/1.0");
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+            });
+
+        return services.BuildServiceProvider();
     }
 
     private sealed class TestHttpServer : IDisposable
@@ -135,7 +147,7 @@ public sealed class Program_DownloadPdfAsyncTests
 
         private static int GetFreePort()
         {
-            var listener = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0);
+            var listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start();
             var port = ((IPEndPoint)listener.LocalEndpoint).Port;
             listener.Stop();
