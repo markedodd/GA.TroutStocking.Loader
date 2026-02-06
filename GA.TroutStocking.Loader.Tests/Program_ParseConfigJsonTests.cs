@@ -1,31 +1,10 @@
-using System.Reflection;
+using GA_TroutStocking_Loader.Tests.TestHelpers;
 using Xunit;
 
 namespace GA_TroutStocking_Loader.Tests;
 
 public sealed class Program_ParseConfigJsonTests
 {
-    private static object InvokeParseConfigJson(string json)
-    {
-        var programType = typeof(GA_TroutStocking_Loader.Program);
-
-        var method = programType.GetMethod(
-            "ParseConfigJson",
-            BindingFlags.NonPublic | BindingFlags.Static);
-
-        Assert.NotNull(method);
-
-        return method!.Invoke(null, new object?[] { json })!;
-    }
-
-    private static string GetConfigProperty(object config, string propertyName)
-    {
-        var prop = config.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
-        Assert.NotNull(prop);
-
-        return (string)prop!.GetValue(config)!;
-    }
-
     [Fact]
     public void ParseConfigJson_WhenValid_ReturnsConfig()
     {
@@ -38,10 +17,10 @@ public sealed class Program_ParseConfigJsonTests
         }
         """;
 
-        var config = InvokeParseConfigJson(json);
+        var config = LegacyJsonConfigParser.ParseConfigJson(json);
 
-        Assert.Equal("https://example.com/report.pdf", GetConfigProperty(config, "PdfUrl"));
-        Assert.Equal("Server=.;Database=Db;Trusted_Connection=True", GetConfigProperty(config, "SqlConnectionString"));
+        Assert.Equal("https://example.com/report.pdf", config.PdfUrl);
+        Assert.Equal("Server=.;Database=Db;Trusted_Connection=True", config.SqlConnectionString);
     }
 
     [Fact]
@@ -55,9 +34,8 @@ public sealed class Program_ParseConfigJsonTests
         }
         """;
 
-        var ex = Assert.Throws<TargetInvocationException>(() => InvokeParseConfigJson(json));
-        Assert.IsType<InvalidOperationException>(ex.InnerException);
-        Assert.Equal("appsettings.json is missing PdfUrl or ConnectionStrings:Sql", ex.InnerException!.Message);
+        var ex = Assert.Throws<InvalidOperationException>(() => LegacyJsonConfigParser.ParseConfigJson(json));
+        Assert.Equal("appsettings.json is missing PdfUrl or ConnectionStrings:Sql", ex.Message);
     }
 
     [Fact]
@@ -72,9 +50,8 @@ public sealed class Program_ParseConfigJsonTests
         }
         """;
 
-        var ex = Assert.Throws<TargetInvocationException>(() => InvokeParseConfigJson(json));
-        Assert.IsType<InvalidOperationException>(ex.InnerException);
-        Assert.Equal("appsettings.json is missing PdfUrl or ConnectionStrings:Sql", ex.InnerException!.Message);
+        var ex = Assert.Throws<InvalidOperationException>(() => LegacyJsonConfigParser.ParseConfigJson(json));
+        Assert.Equal("appsettings.json is missing PdfUrl or ConnectionStrings:Sql", ex.Message);
     }
 
     [Fact]
@@ -89,8 +66,7 @@ public sealed class Program_ParseConfigJsonTests
         }
         """;
 
-        var ex = Assert.Throws<TargetInvocationException>(() => InvokeParseConfigJson(json));
-        Assert.IsType<InvalidOperationException>(ex.InnerException);
-        Assert.Equal("appsettings.json is missing PdfUrl or ConnectionStrings:Sql", ex.InnerException!.Message);
+        var ex = Assert.Throws<InvalidOperationException>(() => LegacyJsonConfigParser.ParseConfigJson(json));
+        Assert.Equal("appsettings.json is missing PdfUrl or ConnectionStrings:Sql", ex.Message);
     }
 }
